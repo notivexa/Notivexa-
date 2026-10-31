@@ -1,0 +1,47 @@
+import os
+from flask import request, redirect, url_for, flash
+from werkzeug.utils import secure_filename
+app.config["UPLOAD_FOLDER"] = "static/pdfs"
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
+
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload_pdf():
+
+    if request.method == "POST":
+
+        file = request.files.get("pdf")
+
+        if not file or file.filename == "":
+            return "Please select a PDF."
+
+        if not file.filename.lower().endswith(".pdf"):
+            return "Only PDF files are allowed."
+
+        filename = secure_filename(file.filename)
+
+        if not filename:
+            return "Invalid filename."
+
+        file.save(
+            os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        )
+
+        return f"""
+        <h2>PDF uploaded successfully!</h2>
+        <a href="/static/pdfs/{filename}">Open PDF</a>
+        """
+
+    return """
+    <h2>Notivexa - Upload Notes</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label>Select your PDF:</label><br><br>
+
+        <input type="file" name="pdf" accept=".pdf"
+        required><br><br>
+
+        <button type="submit">Upload PDF</button>
+    </form>
+    """
